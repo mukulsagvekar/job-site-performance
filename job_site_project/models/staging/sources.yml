@@ -1,0 +1,9 @@
+version: 2
+
+sources:
+  - name: raw
+    database: job_applications_db
+    schema: raw
+    tables:
+      - name: job_filings
+        description: "This table contains raw job application filings data"

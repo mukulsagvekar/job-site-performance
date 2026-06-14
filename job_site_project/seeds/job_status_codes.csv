@@ -1,0 +1,16 @@
+status_code,status_description,stage_group,is_active,is_approved,is_permit_issued,is_completed,is_disapproved,is_suspended
+A,PRE-FILING,PRE_FILING,true,false,false,false,false,false
+F,APPLICATION ASSIGNED TO PLAN EXAMINER,IN_REVIEW,true,false,false,false,false,false
+H,PLAN EXAM - IN PROCESS,IN_REVIEW,true,false,false,false,false,false
+K,PLAN EXAM - PARTIAL APPROVAL,IN_REVIEW,true,false,false,false,false,false
+B,APPLICATION PROCESSED-PART-NO PAYMENT,IN_REVIEW,true,false,false,false,false,false
+C,APPLICATION PROCESSED - PAYMENT ONLY,IN_REVIEW,true,false,false,false,false,false
+E,APPLICATION PROCESSED - NO PLAN EXAM,IN_REVIEW,true,false,false,false,false,false
+P,PLAN EXAM - APPROVED,APPROVED,true,true,false,false,false,false
+D,APPLICATION PROCESSED - ENTIRE,APPROVED,true,true,false,false,false,false
+Q,PERMIT ISSUED - PARTIAL JOB,PERMIT_ISSUED,true,true,true,false,false,false
+R,PERMIT ISSUED - ENTIRE JOB/WORK,PERMIT_ISSUED,true,true,true,false,false,false
+X,SIGNED OFF,COMPLETED,false,true,true,true,false,false
+U,COMPLETED,COMPLETED,false,true,true,true,false,false
+J,PLAN EXAM - DISAPPROVED,DISAPPROVED,false,false,false,false,true,false
+3,SUSPENDED,SUSPENDED,false,false,false,false,false,true
