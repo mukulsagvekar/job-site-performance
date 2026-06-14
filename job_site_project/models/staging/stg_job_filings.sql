@@ -1,6 +1,6 @@
 select
     job_s1_no as job_id,
-    job_no as jon_number,
+    job_no as job_number,
     job_type as job_type_code,
     job_status as job_status_code,
     job_status_descrp as job_status,
