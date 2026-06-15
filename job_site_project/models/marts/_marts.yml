@@ -1,0 +1,112 @@
+# models/marts/_marts.yml
+# Documentation + tests for all dimension and fact mart models.
+
+models:
+
+  - name: dim_date
+    description: Calendar date spine from 2000-01-01 to one year in the future.
+    columns:
+      - name: date_key
+        description: Primary key — one row per calendar date.
+        data_tests:
+          - unique
+          - not_null
+
+  - name: dim_location
+    description: One row per unique borough/block/lot combination seen in job filings.
+    columns:
+      - name: location_key
+        description: Primary key — surrogate key from borough, block, lot.
+        data_tests:
+          - unique
+          - not_null
+      - name: borough
+        data_tests:
+          - not_null
+
+  - name: dim_job_type
+    description: One row per unique job type / building type / occupancy combination.
+    columns:
+      - name: job_type_key
+        description: Primary key — surrogate key from job_type_code, building_type, proposed_occupancy.
+        data_tests:
+          - unique
+          - not_null
+      - name: job_type_description
+        data_tests:
+          - accepted_values:
+              values: ['New Building', 'Major Alteration', 'Minor Alteration', 'Demolition', 'Other']
+
+  - name: dim_cost_bucket
+    description: Static lookup of project cost size categories.
+    columns:
+      - name: cost_bucket
+        description: Primary key — cost bucket label.
+        data_tests:
+          - unique
+          - not_null
+
+  - name: dim_job_status
+    description: Lookup of DOB job status codes and their lifecycle stage groupings.
+    columns:
+      - name: status_code
+        description: Primary key — raw DOB status code.
+        data_tests:
+          - unique
+          - not_null
+      - name: stage_group
+        data_tests:
+          - accepted_values:
+              values: ['PRE_FILING', 'IN_REVIEW', 'APPROVED', 'PERMIT_ISSUED', 'COMPLETED', 'DISAPPROVED', 'SUSPENDED']
+
+  - name: fact_job_filings
+    description: >
+      One row per job application (SCD Type 1 — current state only).
+      Incremental, merged on job_id.
+    columns:
+      - name: job_id
+        description: Primary key — unique job application identifier.
+        data_tests:
+          - unique
+          - not_null
+
+      - name: location_key
+        description: Foreign key to dim_location.
+        data_tests:
+          - relationships:
+              to: ref('dim_location')
+              field: location_key
+
+      - name: job_type_key
+        description: Foreign key to dim_job_type.
+        data_tests:
+          - relationships:
+              to: ref('dim_job_type')
+              field: job_type_key
+
+      - name: cost_bucket
+        description: Foreign key to dim_cost_bucket.
+        data_tests:
+          - relationships:
+              to: ref('dim_cost_bucket')
+              field: cost_bucket
+
+      - name: job_status_code
+        description: Foreign key to dim_job_status.
+        data_tests:
+          - relationships:
+              to: ref('dim_job_status')
+              field: status_code
+
+      - name: days_in_review
+        description: Days between filing_date and latest_action_date.
+        data_tests:
+          - not_null
+
+      - name: is_at_risk
+        description: True if the job is active and has been in review over 180 days.
+        data_tests:
+          - not_null
+
+# ── Custom test: days_to_approval should never exceed days_in_review ────────
+# (saved separately as a singular test below)

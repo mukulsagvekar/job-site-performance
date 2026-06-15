@@ -38,6 +38,12 @@ models:
     intermediate:
       +materialized: incremental
       +schema: intermediate
+    marts:
+      +materialized: incremental
+      +schema: marts
+    analytics:
+      +materialized: table
+      +schema: analytics
 
 seeds:
   job_site_project:

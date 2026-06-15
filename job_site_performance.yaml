@@ -1,0 +1,268 @@
+# semantic_models/job_site_performance.yaml
+#
+# Semantic model for Cortex Analyst.
+# Upload this file to a Snowflake stage, then reference it from Streamlit
+# as: @<db>.<schema>.<stage>/job_site_performance.yaml
+
+name: job_site_performance
+description: >
+  Construction job site performance for NYC DOB job application filings.
+  Tracks where each job is in its lifecycle (pre-filing, in review, approved,
+  permit issued, completed, disapproved, suspended), how long it has taken,
+  its declared cost, and where it is located. Used to identify at-risk
+  projects, measure review/approval timelines, and analyze pipeline value
+  by borough and job type.
+
+tables:
+  - name: job_site_performance
+    description: >
+      One row per construction job application filed with NYC DOB.
+      Includes current status, schedule timing, declared cost, location,
+      and job/building type.
+    base_table:
+      database: JOB_APPLICATIONS_DB
+      schema: ANALYTICS
+      table: JOB_SITE_PERFORMANCE
+
+    # ── Dimensions: categorical / descriptive fields ─────────────────────────
+    dimensions:
+      - name: job_id
+        expr: job_id
+        data_type: TEXT
+        description: Unique identifier for the job application. Primary key.
+        unique: true
+
+      - name: borough
+        expr: borough
+        data_type: TEXT
+        description: NYC borough where the job site is located.
+        sample_values: ["MANHATTAN", "BROOKLYN", "QUEENS", "BRONX", "STATEN ISLAND"]
+        synonyms: ["boro", "location", "area"]
+
+      # - name: community_board
+      #   expr: community_board
+      #   data_type: TEXT
+      #   description: NYC community board district covering the job site.
+
+      - name: job_type_code
+        expr: job_type_code
+        data_type: TEXT
+        description: Raw DOB job type code (e.g. NB, A1, A2, A3, DM).
+
+      - name: job_type_description
+        expr: job_type_description
+        data_type: TEXT
+        description: Human-readable job type.
+        sample_values: ["New Building", "Major Alteration", "Minor Alteration", "Demolition"]
+        synonyms: ["type of work", "project type", "work type"]
+
+      - name: building_type
+        expr: building_type
+        data_type: TEXT
+        description: Type of building the work applies to (e.g. residential, commercial).
+
+      - name: proposed_occupancy
+        expr: proposed_occupancy
+        data_type: TEXT
+        description: Proposed occupancy classification for the building after work is completed.
+
+      - name: cost_bucket
+        expr: cost_bucket
+        data_type: TEXT
+        description: Project size category based on declared job cost.
+        sample_values: ["<100K", "100K-500K", "500K-2M", "2M+"]
+        synonyms: ["project size", "cost category", "budget tier"]
+
+      - name: job_status_code
+        expr: job_status_code
+        data_type: TEXT
+        description: Raw DOB status code for the job (e.g. A, F, H, K, P, Q, R, X, U, J, 3).
+
+      - name: status_description
+        expr: status_description
+        data_type: TEXT
+        description: Human-readable description of the current job status.
+        synonyms: ["current status", "job state"]
+
+      - name: stage_group
+        expr: stage_group
+        data_type: TEXT
+        description: >
+          Lifecycle stage the job is currently in. One of PRE_FILING,
+          IN_REVIEW, APPROVED, PERMIT_ISSUED, COMPLETED, DISAPPROVED, SUSPENDED.
+        sample_values: ["PRE_FILING", "IN_REVIEW", "APPROVED", "PERMIT_ISSUED", "COMPLETED", "DISAPPROVED", "SUSPENDED"]
+        synonyms: ["lifecycle stage", "pipeline stage", "phase"]
+
+      - name: is_active
+        expr: is_active
+        data_type: BOOLEAN
+        description: True if the job still requires action and has not reached a terminal stage.
+
+      - name: is_approved
+        expr: is_approved
+        data_type: BOOLEAN
+        description: True if the job has passed plan exam approval or beyond.
+        synonyms: ["approved"]
+
+      - name: is_permit_issued
+        expr: is_permit_issued
+        data_type: BOOLEAN
+        description: True if a construction permit has been issued for this job (partial or full).
+        synonyms: ["permit issued", "permitted"]
+
+      - name: is_completed
+        expr: is_completed
+        data_type: BOOLEAN
+        description: True if the job has been signed off or fully completed.
+        synonyms: ["completed", "finished", "done"]
+
+      - name: is_disapproved
+        expr: is_disapproved
+        data_type: BOOLEAN
+        description: True if the plan exam disapproved the job application.
+        synonyms: ["rejected", "disapproved"]
+
+      - name: is_suspended
+        expr: is_suspended
+        data_type: BOOLEAN
+        description: True if the job application is currently suspended.
+        synonyms: ["suspended", "on hold"]
+
+      - name: is_at_risk
+        expr: is_at_risk
+        data_type: BOOLEAN
+        description: >
+          True if the job is still active (not yet resolved) and has been
+          in review for more than 180 days without reaching approval.
+        synonyms: ["at risk", "stuck", "delayed", "stalled"]
+
+    # ── Time dimensions: dates used for trends/filtering ──────────────────────
+    time_dimensions:
+      - name: filing_date
+        expr: filing_date
+        data_type: DATE
+        description: Date the job application was first filed (pre-filing date).
+        synonyms: ["filed on", "submission date"]
+
+      - name: latest_action_date
+        expr: latest_action_date
+        data_type: DATE
+        description: Date of the most recent action taken on this job application.
+
+      - name: approval_date
+        expr: approval_date
+        data_type: DATE
+        description: Date the job was approved, if applicable (null for jobs not yet approved).
+
+      - name: filing_month
+        expr: filing_month
+        data_type: DATE
+        description: Calendar month the job was filed, truncated to the first of the month.
+
+      - name: filing_year
+        expr: filing_year
+        data_type: DATE
+        description: Calendar year the job was filed, truncated to January 1st.
+
+    # ── Facts/measures: numeric fields and aggregations ───────────────────────
+    facts:
+      - name: initial_cost
+        expr: initial_cost
+        data_type: NUMBER
+        description: Declared estimated cost of the job in US dollars.
+        synonyms: ["cost", "project value", "budget", "estimated cost"]
+
+      - name: days_in_review
+        expr: days_in_review
+        data_type: NUMBER
+        description: Number of days between filing date and the most recent action date.
+        synonyms: ["review time", "time in review", "age of job"]
+
+      - name: days_to_approval
+        expr: days_to_approval
+        data_type: NUMBER
+        description: >
+          Number of days between filing date and approval date.
+          Null for jobs that have not yet been approved.
+        synonyms: ["time to approval", "approval time"]
+
+    # ── Pre-built metrics: ready-to-use aggregations ──────────────────────────
+    metrics:
+      - name: total_jobs
+        expr: count(job_id)
+        description: Total number of job applications.
+        synonyms: ["number of jobs", "job count", "total filings"]
+
+      - name: total_job_value
+        expr: sum(initial_cost)
+        description: Sum of declared job costs across all applications, in dollars.
+        synonyms: ["total pipeline value", "total project value", "total cost"]
+
+      - name: avg_job_value
+        expr: avg(initial_cost)
+        description: Average declared job cost across applications.
+        synonyms: ["average project cost", "average budget"]
+
+      - name: avg_days_in_review
+        expr: avg(days_in_review)
+        description: Average number of days jobs have spent in review.
+        synonyms: ["average review time"]
+
+      - name: avg_days_to_approval
+        expr: avg(days_to_approval)
+        description: Average number of days from filing to approval, for approved jobs only.
+        synonyms: ["average approval time", "average time to permit"]
+
+      - name: at_risk_count
+        expr: sum(case when is_at_risk then 1 else 0 end)
+        description: Number of jobs currently flagged as at risk (active and pending over 180 days).
+        synonyms: ["at risk jobs", "stalled jobs", "delayed projects"]
+
+      - name: at_risk_rate
+        expr: avg(case when is_at_risk then 1.0 else 0.0 end) * 100
+        description: Percentage of jobs that are currently at risk.
+        synonyms: ["at risk percentage", "delay rate"]
+
+      - name: approval_rate
+        expr: avg(case when is_approved then 1.0 else 0.0 end) * 100
+        description: Percentage of jobs that have reached approval or beyond.
+        synonyms: ["approval percentage"]
+
+# ── Example questions Cortex Analyst should be able to answer correctly ─────
+verified_queries:
+  - name: at_risk_jobs_by_borough
+    question: "Which borough has the most at-risk jobs right now?"
+    sql: >
+      SELECT borough, COUNT(*) AS at_risk_jobs
+      FROM job_site_performance
+      WHERE is_at_risk = TRUE
+      GROUP BY borough
+      ORDER BY at_risk_jobs DESC
+
+  - name: avg_review_time_new_buildings_by_borough
+    question: "What is the average review time for new building filings in Brooklyn vs Manhattan?"
+    sql: >
+      SELECT borough, AVG(days_in_review) AS avg_days_in_review
+      FROM job_site_performance
+      WHERE job_type_description = 'New Building'
+        AND borough IN ('BROOKLYN', 'MANHATTAN')
+      GROUP BY borough
+
+  - name: large_pending_projects
+    question: "Show me all projects over $2M that have been pending for more than 6 months."
+    sql: >
+      SELECT job_id, borough, initial_cost, days_in_review, stage_group
+      FROM job_site_performance
+      WHERE initial_cost > 2000000
+        AND is_active = TRUE
+        AND days_in_review > 180
+      ORDER BY days_in_review DESC
+
+  - name: approval_rate_within_90_days
+    question: "What percentage of large jobs get approved within 90 days?"
+    sql: >
+      SELECT
+        100.0 * SUM(CASE WHEN is_approved AND days_to_approval <= 90 THEN 1 ELSE 0 END)
+          / SUM(CASE WHEN is_approved THEN 1 ELSE 0 END) AS pct_approved_within_90_days
+      FROM job_site_performance
+      WHERE cost_bucket = '2M+'

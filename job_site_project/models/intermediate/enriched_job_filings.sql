@@ -53,7 +53,7 @@ select
         when j.initial_cost < 2000000 then '500K-2M'
         else '2M+'
     end as cost_bucket,
-    
+
     j.load_timestamp as load_timestamp,
     current_timestamp as update__timestamp
 

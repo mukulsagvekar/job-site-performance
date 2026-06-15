@@ -8,5 +8,8 @@ dependencies = [
     "dbt-snowflake>=1.11.5",
     "ipykernel>=7.3.0",
     "pandas>=3.0.3",
+    "plotly>=6.8.0",
+    "requests>=2.34.2",
+    "snowflake-connector-python>=4.6.0",
     "streamlit>=1.58.0",
 ]

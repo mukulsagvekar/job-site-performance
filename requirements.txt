@@ -1,3 +1,6 @@
 pandas
 Streamlit
 dbt-snowflake
+plotly
+snowflake-connector-python
+requests
