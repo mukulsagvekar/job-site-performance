@@ -68,7 +68,7 @@ def run_query(sql: str) -> pd.DataFrame:
         cur.close()
 
 # ── Data loading ──────────────────────────────────────────────────────────────
-@st.cache_data(ttl=600)
+@st.cache_data
 def load_summary():
     return run_query(f"""
         select
@@ -83,7 +83,7 @@ def load_summary():
         from {VIEW_NAME}
     """)
 
-@st.cache_data(ttl=600)
+@st.cache_data
 def load_stage_counts():
     return run_query(f"""
         select stage_group, count(*) as job_count
@@ -92,7 +92,7 @@ def load_stage_counts():
         order by job_count desc
     """)
 
-@st.cache_data(ttl=600)
+@st.cache_data
 def load_borough_summary():
     return run_query(f"""
         select
@@ -107,7 +107,7 @@ def load_borough_summary():
         order by total_jobs desc
     """)
 
-@st.cache_data(ttl=600)
+@st.cache_data
 def load_job_type_summary():
     return run_query(f"""
         select
@@ -121,7 +121,7 @@ def load_job_type_summary():
         order by total_jobs desc
     """)
 
-@st.cache_data(ttl=600)
+@st.cache_data
 def load_monthly_trend():
     return run_query(f"""
         select
@@ -134,7 +134,7 @@ def load_monthly_trend():
         order by filing_month
     """)
 
-@st.cache_data(ttl=600)
+@st.cache_data
 def load_map_data():
     return run_query(f"""
         select
