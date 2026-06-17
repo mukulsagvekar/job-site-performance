@@ -5,7 +5,7 @@ a job site performance dashboard with a natural-language AI assistant —
 built on **Snowflake**, **dbt**, and **Streamlit**, using **Snowflake Cortex Analyst**
 for semantic-layer-powered Q&A.
 
-App link - https://job-site-performance-5fkmdc7wnatvrecrzht5rk.streamlit.app/
+Dashboard Link - https://job-site-performance-zwmyjxxahftsoy2ksl65ww.streamlit.app/
 
 > Built as a portfolio project demonstrating a modern data stack: medallion
 > architecture, dimensional modeling, a semantic layer, and generative AI
